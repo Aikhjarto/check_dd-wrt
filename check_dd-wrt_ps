@@ -5,12 +5,12 @@
 # * check for multiple instances (dnsmasq and httpd run twice)
 # * exit trap to remove ${TMP_FILE} is scipt gets purged because of timeout)
 # * help text output for unknown argument
-#   usage: sudo -u nagios check_dd-wrt_ps -H root@192.168.7.1 -a dnsmasq -a http
+#   usage: sudo -u nagios check_dd-wrt_ps -H 192.168.7.1 -a dnsmasq -a http
 #
 # Bug: sometimes output of ps via ssh is incomplete
 
 # set default values
-REMOTE="root@192.168.1.1"
+REMOTE="192.168.1.1"
 SSH_TIMEOUT=8
 
 # nagios expects one of the following return values
@@ -42,7 +42,7 @@ TMP_FILE=$(mktemp -t 'dd-wrt-ps.XXXXXXX')
 #echo $REMOTE $TMP_FILE ${multi[@]}
 
 # get list of running processes
-ssh -q -o ConnectTimeout=${SSH_TIMEOUT} -t ${REMOTE} ps | awk '{ print $5 }' > ${TMP_FILE}
+ssh -q -o ConnectTimeout=${SSH_TIMEOUT} -t root@${REMOTE} ps | awk '{ print $5 }' > ${TMP_FILE}
 
 if [ $(cat ${TMP_FILE} | wc -l ) -lt 25 ] ; then
 	echo -n "UNKNOWN - process list incomplete, got: "

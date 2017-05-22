@@ -6,7 +6,7 @@
 # ${2} check url, e.g. http://google.com
 
 # set default values
-REMOTE=${1:-root@192.168.1.1}
+REMOTE=${1:-192.168.1.1}
 URL=${2:-http://www.google.com}
 SSH_TIMEOUT=${3:-8}
 
@@ -16,7 +16,7 @@ NAG_WARN=1
 NAG_CRIT=2
 NAG_UNKNOWN=3
 
-ssh -q -o ConnectTimeout=${SSH_TIMEOUT} -t ${REMOTE} wget -q ${URL} -O- > /dev/null
+ssh -q -o ConnectTimeout=${SSH_TIMEOUT} -t root@${REMOTE} wget -q ${URL} -O- > /dev/null
 if [ $? -eq 0 ]; then
   echo -n "OK"
   EX=$NAG_OK
