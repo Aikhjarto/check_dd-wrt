@@ -1,0 +1,82 @@
+#!/bin/bash
+# check if a certain process is running on a dd-wrt router
+#
+# TODO: 
+# * check for multiple instances (dnsmasq and httpd run twice)
+# * exit trap to remove ${TMP_FILE} is scipt gets purged because of timeout)
+# * help text output for unknown argument
+#   usage: sudo -u nagios check_dd-wrt_ps -H root@192.168.7.1 -a dnsmasq -a http
+#
+# Bug: sometimes output of ps via ssh is incomplete
+
+# set default values
+REMOTE="root@192.168.1.1"
+SSH_TIMEOUT=8
+
+# nagios expects one of the following return values
+NAG_OK=0
+NAG_WARN=1
+NAG_CRIT=2
+NAG_UNKNOWN=3
+
+while getopts "H:t:a:"  opt; do
+	case $opt in 
+  		H) 
+			REMOTE=$OPTARG
+			;;
+		t)
+			SSH_TIMEOUT=$OPTARG
+			;;
+		a)
+			multi+=("$OPTARG")
+			;;
+		\?)
+			echo "Invalid option $opt"
+			exit $NAG_UNKNOWN
+			;;
+	esac
+done
+
+TMP_FILE=$(mktemp -t 'dd-wrt-ps.XXXXXXX')
+
+#echo $REMOTE $TMP_FILE ${multi[@]}
+
+# get list of running processes
+ssh -q -o ConnectTimeout=${SSH_TIMEOUT} -t ${REMOTE} ps | awk '{ print $5 }' > ${TMP_FILE}
+
+if [ $(cat ${TMP_FILE} | wc -l ) -lt 25 ] ; then
+	echo -n "UNKNOWN - process list incomplete, got: "
+	cat ${TMP_FILE}
+	echo ";"
+	rm $TMP_FILE
+	exit $NAG_UNKNOWN
+fi
+
+# check list
+EX=$NAG_OK
+NUM_F=0
+NUM_NF=0
+for val in "${multi[@]}"; do
+	if grep -q $val ${TMP_FILE} ; then
+#		echo $val found in ${TMP_FILE}
+		F="$F $val"
+		NUM_F=$((NUM_F + 1))
+	else
+#		echo $val NOT found in ${TMP_FILE}
+		NF="$NF $val"
+		NUM_NF=$((NUM_NF + 1))
+		EX=$NAG_CRIT
+	fi
+done
+
+rm ${TMP_FILE}
+
+if [ $EX -eq $NAG_OK ] ; then
+  echo -n "OK"
+else
+  echo -n "CRITICAL"
+fi
+echo " - found $F; missing $NF | n_found=$NUM_F, n_missing=$NUM_NF"
+
+exit $EX
+
