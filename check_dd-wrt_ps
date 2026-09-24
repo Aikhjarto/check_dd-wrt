@@ -1,4 +1,6 @@
 #!/bin/bash
+# Copyright (C) 2017 Thomas Wagner <wagner-thomas@gmx.at>
+# SPDX-License-Identifier: GPL-2.0-or-later
 # check if a certain process is running on a dd-wrt router
 #
 # TODO: 

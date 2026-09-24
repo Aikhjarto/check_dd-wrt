@@ -1,4 +1,6 @@
 #!/bin/bash
+# Copyright (C) 2017 Thomas Wagner <wagner-thomas@gmx.at>
+# SPDX-License-Identifier: GPL-2.0-or-later
 # checks if a certain url can be reached via a dd-wrt router
 #
 # The two input arguments are:
